@@ -1,5 +1,4 @@
-<div class="grid grid-cols-12 gap-4 h-full" x-data="{ showJson: false }">
-
+<div class="grid grid-cols-12 gap-4 h-full">
     {{-- Field palette: click-to-add --}}
     <aside class="col-span-2 bg-white rounded-lg border p-3 space-y-1 h-fit sticky top-4">
         <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">Add field</h3>
@@ -25,11 +24,19 @@
     {{-- Canvas --}}
     <main class="col-span-7 space-y-4">
         <div class="flex justify-between items-center">
-            <h2 class="text-lg font-semibold">{{ $form->title }}</h2>
+           <div class="flex items-center gap-2">
+                <input type="text" wire:model.blur="newFormTitle"
+                       class="text-lg font-semibold border-0 focus:ring-1 focus:ring-indigo-300 rounded px-1 bg-transparent" />
+                @unless ($form)
+                    <span class="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-0.5">
+                        unsaved — nothing is stored until you click Save
+                    </span>
+                @endunless
+            </div>
             <div class="space-x-2">
                 <button wire:click="addSection('section')" class="text-sm px-3 py-1.5 border rounded">+ Section</button>
                 <button wire:click="addSection('step')" class="text-sm px-3 py-1.5 border rounded">+ Step</button>
-                <button @click="showJson = !showJson" class="text-sm px-3 py-1.5 border rounded">Toggle JSON</button>
+                <button wire:click="$toggle('showJson')" class="text-sm px-3 py-1.5 border rounded">Toggle JSON</button>
                 <button wire:click="save" class="text-sm px-3 py-1.5 bg-indigo-600 text-white rounded">Save</button>
             </div>
         </div>
@@ -47,7 +54,14 @@
                 <div class="flex justify-between items-center mb-3">
                     <input type="text" wire:model.blur="schema.sections.{{ $loop->index }}.title"
                            class="font-medium text-gray-800 border-0 focus:ring-0 p-0 bg-transparent" />
+                    <div class="flex items-center gap-3">
                     <span class="text-xs text-gray-400 uppercase">{{ $section['type'] }}</span>
+                    @if (count($schema['sections']) > 1)
+                        <button type="button" wire:click.stop="removeSection('{{ $section['key'] }}')"
+                                wire:confirm="Delete this {{ $section['type'] }} and all its fields?"
+                                class="text-xs text-red-500 hover:text-red-700">Delete {{ $section['type'] }}</button>
+                    @endif
+                </div>
                 </div>
 
                 <div class="space-y-2 min-h-[60px]" data-sortable-section="{{ $section['key'] }}">
@@ -92,7 +106,7 @@
                 @endif
             </div>
         @endif
-
+        @if ($form)
         <div class="bg-white rounded-lg border p-4">
             <h3 class="text-sm font-semibold mb-2">Version history</h3>
             <div class="space-y-1 max-h-48 overflow-y-auto">
@@ -118,6 +132,7 @@
                 @endforeach
             </div>
         </div>
+        @endif
     </main>
 
     {{-- Field settings panel --}}
@@ -136,6 +151,12 @@
             @endif
         </div>
 
-        @livewire('ai-generate.prompt-generator', ['form' => $form], key('ai-editor-'.$form->id))
+        @if ($form)
+            @livewire('ai-generate.prompt-generator', ['form' => $form], key('ai-editor-'.$form->id))
+        @else
+            <div class="bg-white rounded-lg border p-4">
+                <p class="text-xs text-gray-400">Save the form once to unlock AI editing.</p>
+            </div>
+        @endif
     </aside>
 </div>

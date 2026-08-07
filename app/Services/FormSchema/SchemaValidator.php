@@ -97,7 +97,8 @@ class SchemaValidator
         }
 
         foreach (['key', 'type', 'label'] as $required) {
-            if (empty($field[$required]) && $field[$required] !== '0') {
+            $value = $field[$required] ?? null;
+            if ($value === null || $value === '') {
                 $errors[] = "{$label} is missing required key \"{$required}\".";
             }
         }

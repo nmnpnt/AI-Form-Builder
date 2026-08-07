@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SubmissionExportController;
 use App\Livewire\AiGenerate\PromptGenerator;
 use App\Livewire\FormBuilder\Builder;
@@ -10,24 +11,13 @@ use App\Models\Form;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
-// ---------------------------------------------------------------------
-// Public, unauthenticated: the fill page every form gets.
-// ---------------------------------------------------------------------
 Route::get('/f/{form:slug}', Fill::class)->name('forms.fill');
 
-// ---------------------------------------------------------------------
-// Marketing/landing.
-// ---------------------------------------------------------------------
 Route::get('/', function () {
     return Auth::check() ? redirect()->route('dashboard') : view('welcome');
-})->name('home');
+});
 
-// ---------------------------------------------------------------------
-// Authenticated app. (Breeze/Jetstream auth scaffolding assumed — see
-// README "Auth" section; swap the `auth` middleware group for whatever
-// starter kit you install.)
-// ---------------------------------------------------------------------
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', function () {
         $forms = Form::query()
             ->where('owner_id', auth()->id())
@@ -37,26 +27,27 @@ Route::middleware(['auth'])->group(function () {
         return view('dashboard', compact('forms'));
     })->name('dashboard');
 
-    Route::post('/forms', function () {
-        $form = Form::create([
-            'tenant_id' => auth()->user()->tenant_id,
-            'owner_id' => auth()->id(),
-            'title' => request('title', 'Untitled form'),
-            'status' => 'draft',
-            'source' => 'manual',
-        ]);
-        $form->publishVersion(['sections' => [
-            ['key' => 'section_1', 'title' => 'Section 1', 'type' => 'section', 'fields' => []],
-        ]], via: 'manual', userId: auth()->id());
+    Route::get('/forms/new', Builder::class)->name('forms.new');
+    // Route::post('/forms', function () {
+    //     $form = Form::create([
+    //         'tenant_id' => auth()->user()->tenant_id,
+    //         'owner_id' => auth()->id(),
+    //         'title' => request('title', 'Untitled form'),
+    //         'status' => 'draft',
+    //         'source' => 'manual',
+    //     ]);
+    //     // No publishVersion() here on purpose — nothing counts as "saved"
+    //     // until the user explicitly clicks Save in the builder.
 
-        return redirect()->route('forms.builder', $form);
-    })->name('forms.store');
+    //     return redirect()->route('forms.builder', $form);
+    // })->name('forms.store');
 
     Route::get('/forms/{form}/builder', Builder::class)->name('forms.builder');
     Route::get('/forms/{form}/submissions', SubmissionList::class)->name('forms.submissions');
     Route::get('/forms/{form}/submissions/export', SubmissionExportController::class)->name('forms.submissions.export');
 
     Route::post('/forms/{form}/publish', function (Form $form) {
+        abort_if(! $form->current_version_id, 422, 'Save the form at least once before publishing it.');
         $form->update(['status' => 'published']);
 
         return back()->with('status', 'Form published.');
@@ -69,6 +60,19 @@ Route::middleware(['auth'])->group(function () {
         return redirect()->route('forms.builder', $form)->with('status', 'Rolled back.');
     })->name('forms.rollback');
 
+    Route::delete('/forms/{form}', function (Form $form) {
+        abort_unless($form->owner_id === auth()->id(), 403);
+        $form->delete();
+
+        return redirect()->route('dashboard')->with('status', 'Form deleted.');
+    })->name('forms.destroy');
+
     Route::get('/generate', PromptGenerator::class)->name('forms.generate');
     Route::get('/import', ImportWizard::class)->name('forms.import');
+
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+require __DIR__.'/auth.php';

@@ -17,23 +17,25 @@ use Livewire\Component;
  */
 class Builder extends Component
 {
-    public Form $form;
+    public ?Form $form = null;
+    public ?string $newFormTitle = null;
     public array $schema = ['sections' => []];
     public string $schemaJson = '';
     public ?string $selectedFieldKey = null;
     public ?string $activeSectionKey = null;
+    public bool $showJson = false;
     public array $jsonErrors = [];
 
-    public function mount(Form $form): void
+    public function mount(?Form $form = null): void
     {
         $this->form = $form;
-        $this->schema = $form->currentVersion?->schema ?? ['sections' => [
+        $this->schema = $form?->currentVersion?->schema ?? ['sections' => [
             ['key' => 'section_1', 'title' => 'Section 1', 'type' => 'section', 'fields' => []],
         ]];
+        $this->newFormTitle = $form?->title ?? 'Untitled form';
         $this->activeSectionKey = $this->schema['sections'][0]['key'] ?? null;
         $this->syncJsonFromSchema();
     }
-
     public function fieldTypes(): array
     {
         return config('formbuilder.field_types');
@@ -194,6 +196,22 @@ class Builder extends Component
             return;
         }
 
+        if (! $this->form) {
+            $this->form = Form::create([
+                'tenant_id' => auth()->user()?->tenant_id,
+                'owner_id' => auth()->id(),
+                'title' => $this->newFormTitle ?: 'Untitled form',
+                'status' => 'draft',
+                'source' => 'manual',
+            ]);
+            $this->form->publishVersion($this->schema, via: 'manual', userId: auth()->id());
+
+            session()->flash('status', 'Form saved.');
+            $this->redirectRoute('forms.builder', $this->form, navigate: true);
+
+            return;
+        }
+
         $this->form->publishVersion(
             $this->schema,
             via: 'manual',
@@ -202,6 +220,13 @@ class Builder extends Component
 
         $this->dispatch('form-saved');
         session()->flash('status', 'Form saved.');
+    }
+
+    public function updatedNewFormTitle(): void
+    {
+        if ($this->form) {
+            $this->form->update(['title' => $this->newFormTitle]);
+        }
     }
 
     #[On('ai-schema-updated')]
@@ -266,5 +291,30 @@ class Builder extends Component
     public function render()
     {
         return view('livewire.form-builder.builder');
+    }
+
+        public function removeSection(string $sectionKey): void
+    {
+        if (count($this->schema['sections']) <= 1) {
+            $this->addError('schema', 'A form needs at least one section.');
+            return;
+        }
+
+        $this->schema['sections'] = array_values(array_filter(
+            $this->schema['sections'],
+            fn ($s) => $s['key'] !== $sectionKey
+        ));
+
+        if ($this->activeSectionKey === $sectionKey) {
+            $this->activeSectionKey = $this->schema['sections'][0]['key'] ?? null;
+        }
+
+        if ($this->selectedFieldKey && ! collect($this->schema['sections'])
+            ->flatMap(fn ($s) => array_column($s['fields'], 'key'))
+            ->contains($this->selectedFieldKey)) {
+            $this->selectedFieldKey = null;
+        }
+
+        $this->syncJsonFromSchema();
     }
 }

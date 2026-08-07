@@ -1,4 +1,4 @@
-<div wire:poll.2s="checkStatus" class="bg-white border rounded-lg p-4 space-y-3">
+<div @if(in_array($status, ['pending', 'processing'])) wire:poll.2s="checkStatus" @endif class="bg-white border rounded-lg p-4 space-y-3">    
     <h3 class="text-sm font-semibold text-gray-700">
         {{ $form ? 'Ask AI to edit this form' : 'Generate a form with AI' }}
     </h3>
