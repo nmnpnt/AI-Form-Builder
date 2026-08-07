@@ -38,20 +38,12 @@ WORKDIR /var/www
 
 COPY . .
 
-# Copy Vite build from Node stage
 COPY --from=frontend /var/www/public/build ./public/build
 
-# Install Laravel dependencies
 RUN composer install \
     --optimize-autoloader \
     --no-interaction \
     --no-dev \
     --no-scripts
-
-# Clear old cache
-RUN php artisan optimize:clear
-
-# Cache Laravel config
-RUN php artisan config:cache
 
 CMD php artisan serve --host=0.0.0.0 --port=${PORT}
