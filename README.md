@@ -42,8 +42,10 @@ Edit `.env`:
 ```bash
 php artisan migrate --seed
 php artisan storage:link
-php artisan queue:work        # or `php artisan horizon` — required for AI
-                               # generation and imports, both are queued jobs
+php artisan queue:work        # required — AI generation and imports are queued jobs.
+                               # (Horizon is deliberately not used here: it needs the
+                               # pcntl extension, which isn't available on Windows/WAMP
+                               # PHP builds at all — plain queue:work does the same job.)
 php artisan serve
 ```
 
