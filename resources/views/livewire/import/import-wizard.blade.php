@@ -5,7 +5,7 @@
         <div class="bg-white border rounded-lg p-6 space-y-3">
             <input type="file" wire:model="file" accept=".docx,.xlsx" class="text-sm">
             @error('file') <p class="text-xs text-red-500">{{ $message }}</p> @enderror
-            <button wire:click="upload" wire:loading.attr="disabled"
+            <button wire:click="submitImport" wire:loading.attr="disabled"
                     class="px-4 py-1.5 bg-indigo-600 text-white text-sm rounded">
                 Upload &amp; parse
             </button>
@@ -60,7 +60,7 @@
             </div>
         @endforeach
 
-        <button wire:click="commit" class="px-4 py-2 bg-green-600 text-white text-sm rounded">
+        <button wire:click="commitImport" class="px-4 py-2 bg-green-600 text-white text-sm rounded">
             Looks good — create the form
         </button>
     @endif

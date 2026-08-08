@@ -27,7 +27,7 @@ class ImportWizard extends Component
     public array $unparsedBlocks = [];
     public ?string $error = null;
 
-    public function upload(): void
+    public function submitImport(): void
     {
         $this->validate();
 
@@ -92,7 +92,7 @@ class ImportWizard extends Component
             array_values($this->draftSchema['sections'][$sectionIndex]['fields']);
     }
 
-    public function commit(): void
+    public function commitImport(): void
     {
         $import = FormImport::where('uuid', $this->importUuid)->firstOrFail();
 
