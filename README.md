@@ -4,7 +4,7 @@ A Laravel + Livewire + MySQL form builder with three ways to create a form:
 manually via a drag/drop canvas, generated from a natural-language prompt
 via an LLM, or imported from an existing Word/Excel document.
 
-> **Live demo:** _add your deployed URL here_
+> **Live demo:** `https://ai-form-builder-production-712b.up.railway.app/`
 > **Demo login:** `admin@example.com` / `password` (see `DatabaseSeeder`)
 
 > ⚠️ **Before you submit — two mandatory deliverables you must do yourself:**
