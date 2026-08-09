@@ -7,17 +7,6 @@ via an LLM, or imported from an existing Word/Excel document.
 > **Live demo:** `https://ai-form-builder-production-712b.up.railway.app/`
 > **Demo login:** `admin@example.com` / `password` (see `DatabaseSeeder`)
 
-> ⚠️ **Before you submit — two mandatory deliverables you must do yourself:**
-> 1. **Deploy this somewhere reachable** (Railway/Render/Hostinger/a VPS all
->    work) and put the live URL + credentials in the two lines above. This
->    was built in a sandboxed environment with no PHP runtime and no
->    outbound access to hosting providers or Packagist, so it could not be
->    deployed or even `composer install`ed here — see §7 below.
-> 2. **Push this to a public GitHub repo with real, incremental commits.**
->    A local git history was started for you (see `git log`) covering the
->    major build phases; continue committing as you make changes rather
->    than squashing to one commit — the brief explicitly flags a single
->    "initial commit" as a negative signal.
 
 ---
 
