@@ -1,6 +1,12 @@
+{{-- Uses Breeze's <x-app-layout> component (resources/views/layouts/app.blade.php,
+     published by `php artisan breeze:install blade`). This file assumes Breeze
+     (or an equivalent starter kit providing that component) is already installed —
+     see README §1 "Auth". --}}
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">Your forms</h2>
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Your forms
+        </h2>
     </x-slot>
 
     <div class="py-8">
@@ -9,9 +15,7 @@
                 <a href="{{ route('forms.new') }}" class="px-3 py-1.5 bg-indigo-600 text-white text-sm rounded">+ New form</a>
             </div>
 
-            @if (session('status'))
-                <div class="text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">{{ session('status') }}</div>
-            @endif
+            <x-flash-message />
 
             <div class="bg-white border rounded-lg divide-y">
                 @forelse ($forms as $form)
@@ -35,12 +39,15 @@
                             @else
                                 <span class="text-gray-400 text-xs italic">not saved yet</span>
                             @endif
-                            <form method="POST" action="{{ route('forms.destroy', $form) }}" class="inline"
-                                  onsubmit="return confirm('Delete this form? This cannot be undone from here.');">
+                            <form id="delete-form-{{ $form->id }}" method="POST" action="{{ route('forms.destroy', $form) }}" class="hidden">
                                 @csrf
                                 @method('DELETE')
-                                <button class="text-red-500">Delete</button>
                             </form>
+                            <button type="button" class="text-red-500"
+                                    onclick="window.dispatchEvent(new CustomEvent('confirm-action', { detail: {
+                                        message: 'Delete this form? This cannot be undone from here.',
+                                        onConfirm: () => document.getElementById('delete-form-{{ $form->id }}').submit()
+                                    } }))">Delete</button>
                         </div>
                     </div>
                 @empty

@@ -1,4 +1,5 @@
 <div class="grid grid-cols-12 gap-4 h-full">
+
     {{-- Field palette: click-to-add --}}
     <aside class="col-span-2 bg-white rounded-lg border p-3 space-y-1 h-fit sticky top-4">
         <h3 class="text-xs font-semibold text-gray-500 uppercase mb-2">Add field</h3>
@@ -24,7 +25,7 @@
     {{-- Canvas --}}
     <main class="col-span-7 space-y-4">
         <div class="flex justify-between items-center">
-           <div class="flex items-center gap-2">
+            <div class="flex items-center gap-2">
                 <input type="text" wire:model.blur="newFormTitle"
                        class="text-lg font-semibold border-0 focus:ring-1 focus:ring-indigo-300 rounded px-1 bg-transparent" />
                 @unless ($form)
@@ -41,9 +42,7 @@
             </div>
         </div>
 
-        @if (session('status'))
-            <div class="text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">{{ session('status') }}</div>
-        @endif
+        <x-flash-message />
 
         @foreach($schema['sections'] as $section)
             <div class="bg-white rounded-lg border p-4 {{ $activeSectionKey === $section['key'] ? 'ring-1 ring-indigo-300' : '' }}"
@@ -55,13 +54,16 @@
                     <input type="text" wire:model.blur="schema.sections.{{ $loop->index }}.title"
                            class="font-medium text-gray-800 border-0 focus:ring-0 p-0 bg-transparent" />
                     <div class="flex items-center gap-3">
-                    <span class="text-xs text-gray-400 uppercase">{{ $section['type'] }}</span>
-                    @if (count($schema['sections']) > 1)
-                        <button type="button" wire:click.stop="removeSection('{{ $section['key'] }}')"
-                                wire:confirm="Delete this {{ $section['type'] }} and all its fields?"
-                                class="text-xs text-red-500 hover:text-red-700">Delete {{ $section['type'] }}</button>
-                    @endif
-                </div>
+                        <span class="text-xs text-gray-400 uppercase">{{ $section['type'] }}</span>
+                        @if (count($schema['sections']) > 1)
+                            <button type="button" wire:key="delete-section-btn-{{ $section['key'] }}"
+                                    onclick="window.dispatchEvent(new CustomEvent('confirm-action', { detail: {
+                                        message: 'Delete this {{ $section['type'] }} and all its fields?',
+                                        onConfirm: () => window.Livewire.find('{{ $this->getId() }}').call('removeSection', '{{ $section['key'] }}')
+                                    } }))"
+                                    class="text-xs text-red-500 hover:text-red-700">Delete {{ $section['type'] }}</button>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="space-y-2 min-h-[60px]" data-sortable-section="{{ $section['key'] }}">
@@ -106,6 +108,7 @@
                 @endif
             </div>
         @endif
+
         @if ($form)
         <div class="bg-white rounded-lg border p-4">
             <h3 class="text-sm font-semibold mb-2">Version history</h3>

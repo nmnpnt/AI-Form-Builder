@@ -11,9 +11,15 @@
     @auth
         <nav class="bg-white border-b px-6 py-3 flex justify-between items-center">
             <a href="{{ route('dashboard') }}" class="font-semibold">{{ config('app.name') }}</a>
-            <div class="text-sm space-x-4">
+            <div class="text-sm space-x-4 flex items-center">
                 <a href="{{ route('forms.generate') }}" class="hover:text-indigo-600">Generate with AI</a>
                 <a href="{{ route('forms.import') }}" class="hover:text-indigo-600">Import</a>
+                <span class="text-gray-300">|</span>
+                <span class="text-gray-500">{{ auth()->user()->name }}</span>
+                <form method="POST" action="{{ route('logout') }}">
+                    @csrf
+                    <button type="submit" class="hover:text-red-600">Log out</button>
+                </form>
             </div>
         </nav>
     @endauth
@@ -21,6 +27,8 @@
     <main class="py-6">
         {{ $slot }}
     </main>
+
+    <x-confirm-modal />
 
     @livewireScripts
 </body>
